@@ -38,7 +38,6 @@ contract AccountTest is Test {
     uint256 maxFeePerGas = 10 gwei;
     uint256 maxPriorityFeePerGas = 5 gwei;
     bytes32 gasFees = bytes32((maxPriorityFeePerGas << 128) | maxFeePerGas);
-
     uint256 preVerificationGas = 50_000;
     uint256 verificationGasLimit = 1_000_000;
     uint256 callGasLimit = 200_000;
@@ -58,14 +57,14 @@ contract AccountTest is Test {
 
     uint128 paymasterVerificationGasLimit = 100_000;
     uint128 paymasterPostOpGasLimit = 100_000;
+    bytes memory paymasterAndData =
+      _encodePaymasterAndData(address(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit);
 
     PackedUserOperation memory userOp = PackedUserOperation({
       nonce: entryPoint.getNonce(sender, 0),
       sender: sender,
       signature: "",
-      paymasterAndData: _encodePaymasterAndData(
-        address(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit
-      ),
+      paymasterAndData: paymasterAndData,
       gasFees: gasFees,
       preVerificationGas: preVerificationGas,
       accountGasLimits: accountGasLimits,
@@ -88,6 +87,10 @@ contract AccountTest is Test {
     assertEq(entryPoint.balanceOf(address(paymaster)) > 0, true);
     assertEq(entryPoint.balanceOf(sender), 0);
   }
+
+  /*//////////////////////////////////////////////////////////////
+                              HELPERS
+  //////////////////////////////////////////////////////////////*/
 
   function _getSignature(
     Account calldata _account,
