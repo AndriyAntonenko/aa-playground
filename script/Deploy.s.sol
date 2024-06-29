@@ -14,8 +14,8 @@ contract Deploy is Script {
   }
 
   function deploy() public returns (AccountFactory, EntryPoint, Paymaster) {
-    AccountFactory accountFactory = new AccountFactory();
     EntryPoint entryPoint = new EntryPoint();
+    AccountFactory accountFactory = new AccountFactory(entryPoint);
     Paymaster paymaster = new Paymaster();
     return (accountFactory, entryPoint, paymaster);
   }
