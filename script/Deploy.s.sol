@@ -3,7 +3,7 @@ pragma solidity ^0.8.23;
 
 import { Script } from "forge-std/Script.sol";
 import { EntryPoint } from "../src/EntryPoint.sol";
-import { AccountFactory } from "../src/Account.sol";
+import { AccountFactory } from "../src/AccountFactory.sol";
 import { Paymaster } from "../src/Paymaster.sol";
 
 contract Deploy is Script {

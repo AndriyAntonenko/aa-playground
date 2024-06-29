@@ -10,9 +10,9 @@ import { Counter } from "../src/mocks/Counter.sol";
 
 import { EntryPoint } from "../src/EntryPoint.sol";
 import { Paymaster } from "../src/Paymaster.sol";
-import { AccountFactory, AbstractedAccount } from "../src/Account.sol";
+import { AbstractedAccount } from "../src/Account.sol";
+import { AccountFactory } from "../src/AccountFactory.sol";
 import { Deploy } from "../script/Deploy.s.sol";
-import { CreateUtil } from "./utils/CreateUtil.sol";
 
 contract AccountTest is Test {
   Counter public counter;
@@ -33,8 +33,6 @@ contract AccountTest is Test {
   }
 
   function testUserOp_succesfull() public {
-    address sender = CreateUtil.contractAddressFrom(address(accountFactory), vm.getNonce(address(accountFactory)));
-
     uint256 maxFeePerGas = 10 gwei;
     uint256 maxPriorityFeePerGas = 5 gwei;
     bytes32 gasFees = bytes32((maxPriorityFeePerGas << 128) | maxFeePerGas);
@@ -44,8 +42,10 @@ contract AccountTest is Test {
     bytes32 accountGasLimits = bytes32((verificationGasLimit << 128) | callGasLimit);
 
     // accountFactory + calldata
+    bytes32 salt = bytes32(uint256(0));
+    address sender = accountFactory.predictAccountAddress(OWNER.addr, salt);
     bytes memory initCode = abi.encodePacked(
-      address(accountFactory), abi.encodeWithSelector(AccountFactory.createAccount.selector, OWNER.addr)
+      address(accountFactory), abi.encodeWithSelector(AccountFactory.createAccount.selector, OWNER.addr, salt)
     );
 
     bytes memory callData = abi.encodeWithSelector(

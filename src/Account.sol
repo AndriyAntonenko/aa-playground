@@ -8,6 +8,7 @@ import { SIG_VALIDATION_FAILED, SIG_VALIDATION_SUCCESS } from "@account-abstract
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
 contract AbstractedAccount is BaseAccount, Ownable {
   error AbstractedAccount__InvalidCaller();
@@ -126,18 +127,5 @@ contract AbstractedAccount is BaseAccount, Ownable {
   /// @param _amount - amount to withdraw
   function withdrawDepositTo(address payable _withdrawAddress, uint256 _amount) public onlyOwnerOrSelf {
     entryPoint().withdrawTo(_withdrawAddress, _amount);
-  }
-}
-
-contract AccountFactory {
-  IEntryPoint public immutable i_entryPoint;
-
-  constructor(IEntryPoint _entryPoint) {
-    i_entryPoint = _entryPoint;
-  }
-
-  function createAccount(address _owner) external returns (address) {
-    AbstractedAccount acc = new AbstractedAccount(_owner, i_entryPoint);
-    return address(acc);
   }
 }
