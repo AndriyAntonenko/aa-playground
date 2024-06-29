@@ -8,15 +8,17 @@ import { Paymaster } from "../src/Paymaster.sol";
 
 contract Deploy is Script {
   function run() public {
+    address paymasterSigner = vm.envAddress("PAYMASTER_SIGNER");
+
     vm.startBroadcast();
-    deploy();
+    deploy(paymasterSigner);
     vm.stopBroadcast();
   }
 
-  function deploy() public returns (AccountFactory, EntryPoint, Paymaster) {
+  function deploy(address _paymasterSigner) public returns (AccountFactory, EntryPoint, Paymaster) {
     EntryPoint entryPoint = new EntryPoint();
     AccountFactory accountFactory = new AccountFactory(entryPoint);
-    Paymaster paymaster = new Paymaster();
+    Paymaster paymaster = new Paymaster(entryPoint, _paymasterSigner);
     return (accountFactory, entryPoint, paymaster);
   }
 }

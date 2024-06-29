@@ -2,6 +2,7 @@
 pragma solidity ^0.8.23;
 
 import { Test } from "forge-std/Test.sol";
+import { console } from "forge-std/console.sol";
 import { PackedUserOperation } from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import { UserOperationLib } from "@account-abstraction/contracts/core/UserOperationLib.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -16,6 +17,7 @@ import { Deploy } from "../script/Deploy.s.sol";
 
 contract AccountTest is Test {
   Counter public counter;
+  Account public PAYMASTER_SIGNER = makeAccount("PAYMASTER_SIGNER");
   Account public OWNER = makeAccount("OWNER");
   address public immutable SPONSOR = makeAddr("SPONSOR");
   address public immutable BENEFICIARY = makeAddr("BENEFICIARY");
@@ -29,7 +31,7 @@ contract AccountTest is Test {
   function setUp() public {
     deployer = new Deploy();
     counter = new Counter();
-    (accountFactory, entryPoint, paymaster) = deployer.deploy();
+    (accountFactory, entryPoint, paymaster) = deployer.deploy(PAYMASTER_SIGNER.addr);
   }
 
   function testUserOp_succesfull() public {
@@ -55,22 +57,41 @@ contract AccountTest is Test {
       abi.encodeWithSelector(Counter.increment.selector, sender)
     );
 
-    uint128 paymasterVerificationGasLimit = 100_000;
-    uint128 paymasterPostOpGasLimit = 100_000;
-    bytes memory paymasterAndData =
-      _encodePaymasterAndData(address(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit);
+    uint128 paymasterVerificationGasLimit = 1_000_000;
+    uint128 paymasterPostOpGasLimit = 0;
 
+    console.logBytes(
+      _encodePaymasterWithoutData(address(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit)
+    );
     PackedUserOperation memory userOp = PackedUserOperation({
       nonce: entryPoint.getNonce(sender, 0),
       sender: sender,
       signature: "",
-      paymasterAndData: paymasterAndData,
+      paymasterAndData: _encodePaymasterWithoutData(
+        address(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit
+      ),
       gasFees: gasFees,
       preVerificationGas: preVerificationGas,
       accountGasLimits: accountGasLimits,
       initCode: initCode,
       callData: callData
     });
+
+    uint48 validUntil = uint48(block.timestamp + 1 minutes);
+    uint48 validAfter = uint48(block.timestamp);
+    bytes memory paymasterSignature =
+      this._getPaymasterSignatureForUserOp(PAYMASTER_SIGNER, userOp, validUntil, validAfter);
+
+    bytes memory paymasterAndData = _encodePaymasterAndData(
+      address(paymaster),
+      paymasterVerificationGasLimit,
+      paymasterPostOpGasLimit,
+      validUntil,
+      validAfter,
+      paymasterSignature
+    );
+
+    userOp.paymasterAndData = paymasterAndData;
 
     bytes memory signature = this._getSignature(OWNER, userOp);
     userOp.signature = signature;
@@ -112,7 +133,46 @@ contract AccountTest is Test {
     return signature;
   }
 
+  function _getPaymasterSignatureForUserOp(
+    Account calldata _account,
+    PackedUserOperation calldata _userOp,
+    uint48 _validUntil,
+    uint48 _validAfter
+  )
+    public
+    view
+    returns (bytes memory)
+  {
+    bytes32 hash = paymaster.getHash(_userOp, _validUntil, _validAfter);
+    bytes32 ethSignedHash = MessageHashUtils.toEthSignedMessageHash(hash);
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(_account.key, ethSignedHash);
+    bytes memory signature = new bytes(65);
+    assembly {
+      mstore(add(signature, 32), r)
+      mstore(add(signature, 64), s)
+      mstore8(add(signature, 96), v)
+    }
+    return signature;
+  }
+
   function _encodePaymasterAndData(
+    address _paymaster,
+    uint128 _paymasterVerificationGasLimit,
+    uint128 _paymasterPostOpGasLimit,
+    uint48 _validUntil,
+    uint48 _validAfter,
+    bytes memory _signature
+  )
+    internal
+    pure
+    returns (bytes memory)
+  {
+    bytes memory withoutData =
+      _encodePaymasterWithoutData(_paymaster, _paymasterVerificationGasLimit, _paymasterPostOpGasLimit);
+    return abi.encodePacked(withoutData, _validUntil, _validAfter, _signature);
+  }
+
+  function _encodePaymasterWithoutData(
     address _paymaster,
     uint128 _paymasterVerificationGasLimit,
     uint128 _paymasterPostOpGasLimit
@@ -121,12 +181,7 @@ contract AccountTest is Test {
     pure
     returns (bytes memory)
   {
-    bytes memory result = new bytes(52);
-    assembly {
-      mstore(add(result, 32), shl(96, _paymaster))
-      mstore(add(result, 52), shl(128, _paymasterVerificationGasLimit))
-      mstore(add(result, 68), shl(128, _paymasterPostOpGasLimit))
-    }
-    return result;
+    bytes32 result = bytes32((uint256(_paymasterVerificationGasLimit) << 128) | uint256(_paymasterPostOpGasLimit));
+    return abi.encodePacked(_paymaster, result);
   }
 }
