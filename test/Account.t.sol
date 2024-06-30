@@ -2,7 +2,6 @@
 pragma solidity ^0.8.23;
 
 import { Test } from "forge-std/Test.sol";
-import { console } from "forge-std/console.sol";
 import { PackedUserOperation } from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import { UserOperationLib } from "@account-abstraction/contracts/core/UserOperationLib.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -62,9 +61,6 @@ contract AccountTest is Test {
     uint128 paymasterVerificationGasLimit = 1_000_000;
     uint128 paymasterPostOpGasLimit = 0;
 
-    console.logBytes(
-      _encodePaymasterWithoutData(address(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit)
-    );
     PackedUserOperation memory userOp = PackedUserOperation({
       nonce: entryPoint.getNonce(sender, 0),
       sender: sender,
