@@ -15,6 +15,8 @@ import { AbstractedAccount } from "../src/Account.sol";
 import { AccountFactory } from "../src/AccountFactory.sol";
 import { Deploy } from "../script/Deploy.s.sol";
 
+/// @title AccountTest
+/// @dev Test the execution of a user operation (without bundler) with paymaster
 contract AccountTest is Test {
   Counter public counter;
   Account public PAYMASTER_SIGNER = makeAccount("PAYMASTER_SIGNER");
@@ -101,7 +103,7 @@ contract AccountTest is Test {
 
     vm.deal(SPONSOR, SPONSOR_BALANCE);
     vm.prank(SPONSOR);
-    entryPoint.depositTo{ value: 1 ether }(address(paymaster));
+    entryPoint.depositTo{ value: 1 ether }(address(paymaster)); // <-- deposit to paymaster
     entryPoint.handleOps(userOps, payable(BENEFICIARY));
 
     assertEq(counter.s_counts(sender), 1);

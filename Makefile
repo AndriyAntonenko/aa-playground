@@ -36,3 +36,9 @@ deploy-anvil :; forge script script/Deploy.s.sol \
 	--private-key ${DEFAULT_ANVIL_KEY} \
 	--rpc-url http://localhost:8545 \
 	--broadcast
+
+deploy :; forge script script/Deploy.s.sol \
+	--interactives 1 \
+	--rpc-url ${RPC_URL} \
+	--broadcast \
+	--legacy

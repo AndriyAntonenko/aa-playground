@@ -9,6 +9,8 @@ import { UserOperationLib } from "@account-abstraction/contracts/core/UserOperat
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
+/// @title Paymaster
+/// @dev Paymaster contract to validate user operations with a signature
 contract Paymaster is BasePaymaster {
   using UserOperationLib for PackedUserOperation;
 
@@ -58,6 +60,7 @@ contract Paymaster is BasePaymaster {
     uint256
   )
     internal
+    view
     override(BasePaymaster)
     returns (bytes memory context, uint256 validationData)
   {
@@ -77,7 +80,7 @@ contract Paymaster is BasePaymaster {
 
   function _parsePaymasterData(bytes calldata paymasterData)
     internal
-    view
+    pure
     returns (uint48 validUntil, uint48 validAfter, bytes calldata signature)
   {
     bytes memory borders = paymasterData[VALID_TIMESTAMP_OFFSET:SIGNATURE_OFFSET];

@@ -10,6 +10,8 @@ import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { MessageHashUtils } from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
+/// @title AbstractedAccount
+/// @dev actually it's mostly a copy of the SimepleAccount, provided by the account-abstraction package
 contract AbstractedAccount is BaseAccount, Ownable {
   error AbstractedAccount__InvalidCaller();
   error AbstractedAccount__BatchParamsMismatch();
