@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "smart-account": "tsx -r dotenv/config ./src/index.ts"
+    "send-eth": "tsx -r dotenv/config ./src/send-eth-op.ts",
+    "send-eth-sponsored": "tsx -r dotenv/config ./src/send-eth-sponsored-op.ts"
   },
   "devDependencies": {
     "@types/node": "^20.2.5",

@@ -4,8 +4,8 @@ import { createWalletClient, http } from "viem";
 import { sepolia } from "viem/chains";
 import type { SendUserOperationResult } from "@alchemy/aa-core";
 
-import { smartAccountClient } from "./smart-account-client";
-import { config } from "./config";
+import { smartAccountClient } from "./helpers/smart-account-client";
+import { config } from "./helpers/config";
 
 async function main(): Promise<void> {
   const smartAccountAddress = smartAccountClient.getAddress();
