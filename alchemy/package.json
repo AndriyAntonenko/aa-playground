@@ -1,0 +1,23 @@
+{
+  "name": "aa-alchemy-playground",
+  "version": "1.0.0",
+  "description": "Playground to test account abstraction service from Alchemy",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "smart-account": "tsx -r dotenv/config ./src/index.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.5",
+    "tslib": "^2.5.2",
+    "tsx": "^3.12.7",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@alchemy/aa-alchemy": "3.2.1",
+    "@alchemy/aa-core": "3.2.1",
+    "dotenv": "16.3.1"
+  },
+  "author": "Andrii Antonenko",
+  "license": "ISC"
+}
